@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug build_mapping.py (direct file)",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/build_mapping.py",
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}" },
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug run_all.py",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/run_all.py",
+      "cwd": "${workspaceFolder}",
+      "env": { "PYTHONPATH": "${workspaceFolder}" },
+      "console": "integratedTerminal"
+    }
+  ]
+}
