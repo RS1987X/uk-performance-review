@@ -3,7 +3,7 @@
 import pandas as pd
 from pathlib import Path
 from src import config
-from src.utils import read_messy_tab_file
+from src.utils import read_messy_tab_file,read_flexible_table,normalize_transactions
 from typing import Optional
 
 
@@ -19,8 +19,20 @@ def format_transactions(
     - Reorder to the desired columns and save as a semi‐colon‐delimited CSV.
     Returns the formatted DataFrame.
     """
+    # temp_path = raw_transactions_path.with_suffix('.tmp')
+    # normalize_transactions(raw_transactions_path, temp_path)
+
     # 1. Read raw transactions (could be tab / messy)
-    tx = read_messy_tab_file(raw_transactions_path)
+    #tx = read_messy_tab_file(raw_transactions_path)
+    tx = read_flexible_table(raw_transactions_path)
+    
+    # 2. Check that 'Portfolio' has been created by the user
+    if "subportfolio" not in tx.columns:
+        raise RuntimeError(
+            f"❌  'subortfolio' column not found in {raw_transactions_path}. "
+            f"Please add a 'subportfolio' column before running this script."
+        )
+
 
     # 2. Read mapping
     isin_map = pd.read_csv(mapping_path)
@@ -66,7 +78,6 @@ def format_transactions(
         merged["ISIN"]
     )
 
-
     # Remove trailing ".US"
     merged["Name YFINANCE"] = merged["Name YFINANCE"].str.replace(r"\.US$", "", regex=True)
 
@@ -89,6 +100,7 @@ def format_transactions(
     # 6. Select & reorder columns
     output_cols = [
         "Affärsdag",
+        "subportfolio",
         "Name YFINANCE",
         "Transaktionstyp",
         "Antal",

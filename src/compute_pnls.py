@@ -44,7 +44,7 @@ def build_daily_positions(
     all_port_names = set(config.SUB_PORTFOLIO_NAMES)
 
     for port_name in sorted(all_port_names):
-        grp = tx_copy[tx_copy["Portfolio"] == port_name]
+        grp = tx_copy[tx_copy["subportfolio"] == port_name]
         # Pivot buy/sell separately
         buys = (
             grp[grp["Transaktionstyp"] == "KÖPT"]
@@ -58,7 +58,7 @@ def build_daily_positions(
         signed_sells = -sells.fillna(0).reindex(price_dates, fill_value=0)
 
         # Include starting positions on start_date
-        pos_start = start_pos_df[start_pos_df["Portfolio"] == port_name]
+        pos_start = start_pos_df[start_pos_df["subportfolio"] == port_name]
         all_tickers = set(signed_buys.columns).union(signed_sells.columns).union(set(pos_start["Name"]))
         signed_buys = signed_buys.reindex(columns=all_tickers, fill_value=0)
         signed_sells = signed_sells.reindex(columns=all_tickers, fill_value=0)
@@ -67,7 +67,7 @@ def build_daily_positions(
         if not pos_start.empty:
             sd = pd.to_datetime(start_date_str).date()
             if sd not in pos_full.index:
-                raise KeyError(f"Start date {sd} not in price index for portfolio '{port_name}'.")
+                raise KeyError(f"Start date {sd} not in price index for sub portfolio '{port_name}'.")
             start_row = pd.Series(
                 {row["Name"]: row["Shares"] for _, row in pos_start.iterrows()},
                 index=all_tickers,
@@ -215,7 +215,7 @@ def aggregate_portfolio_pnl(
         per_ticker_unrealized = compute_unrealized_pnl(positions, price_sek)
 
         # 5) Realized PnL per date & ticker
-        trades_port = tx[tx["Portfolio"] == port_name]
+        trades_port = tx[tx["subportfolio"] == port_name]
         daily_realized_series, per_ticker_realized = compute_realized_pnl(trades_port)
 
         # 6) Per‐ticker total daily PnL = unrealized + realized_by_ticker

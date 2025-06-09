@@ -168,7 +168,7 @@ def build_mapping(
 
 def main():
     mapping_df = build_mapping(
-        transactions_csv=config.TRANSACTIONS_CSV,
+        transactions_csv=config.RAW_TX_PATH,
         output_csv=config.ISIN_MAPPING_CSV,
         api_key=config.EOD_API_KEY,
     )
