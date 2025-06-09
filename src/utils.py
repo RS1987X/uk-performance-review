@@ -46,6 +46,8 @@ def read_messy_tab_file(filepath, encoding='utf-16', preview_bad_rows=5):
     header = cleaned_rows[0]
     data = pd.DataFrame(cleaned_rows[1:], columns=header)
     return data
+
+
 # src/utils.py
 # from pathlib import Path
 # from typing import Union, List, Optional

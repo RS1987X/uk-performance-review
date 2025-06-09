@@ -136,11 +136,14 @@ def fetch_ticker_prices(
         # c) If Yahoo succeeded, skip manual fallback
         if got_from_yahoo:
             continue
-
+        
+        
         # d) Manual fallback (runs if Yahoo failed OR ticker was invalid)
-        file_path = manual_data_dir / f"{isin}.csv"
+        file_path = manual_data_dir / f"{ticker}.csv"
         if file_path.exists():
-            logger.info(f"Attempting manual fallback for ISIN={isin!r} from {file_path}")
+            # if isin == "IE00B4M7GH52":
+            #     print("da")
+            logger.info(f"Attempting manual fallback for Identifying name={ticker!r} from {file_path}")
             try:
                 # df_manual = pd.read_csv(
                 #     file_path,
@@ -167,13 +170,13 @@ def fetch_ticker_prices(
                 df_manual.set_index("Date", inplace=True)
 
                 # 4) Extract the “Last” column as our closing prices.
-                closing = df_manual["Last"].rename(isin)
-                price_series[isin] = closing
-                logger.info(f"  ✓ Loaded {len(closing)} rows of manual data for ISIN={isin!r}")
+                closing = df_manual["Last"].rename(ticker)
+                price_series[ticker] = closing
+                logger.info(f"  ✓ Loaded {len(closing)} rows of manual data for Identifying name={ticker!r}")
                 continue
             except Exception as e:
                 reason = f"Error reading manual CSV: {e}"
-                logger.error(f"  ❌ {reason} for ISIN={isin!r} at path {file_path}")
+                logger.error(f"  ❌ {reason} for Identifying name={ticker!r} at path {file_path}")
                 price_failures.append({
                     "ISIN": isin,
                     "Ticker": ticker,
@@ -319,7 +322,7 @@ def main():
 
     # 3. Fetch FX rates
     fx_series = fetch_fx_rates(
-        formatted_tx_path=config.FORMATTED_TRANSACTIONS_CSV,
+        formatted_tx_path=config.AUGMENTET_AND_FORMATTED_TX_CSV,
         start_date=config.START_DATE_STR,
         end_date=config.TODAY_STR
     )

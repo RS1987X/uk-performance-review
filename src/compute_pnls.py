@@ -48,11 +48,11 @@ def build_daily_positions(
         # Pivot buy/sell separately
         buys = (
             grp[grp["Transaktionstyp"] == "KÖPT"]
-            .pivot_table(index="Date", columns="Name YFINANCE", values="Antal", aggfunc="sum")
+            .pivot_table(index="Date", columns="Identifying name", values="Antal", aggfunc="sum")
         )
         sells = (
             grp[grp["Transaktionstyp"] == "SÅLT"]
-            .pivot_table(index="Date", columns="Name YFINANCE", values="Antal", aggfunc="sum")
+            .pivot_table(index="Date", columns="Identifying name", values="Antal", aggfunc="sum")
         )
         signed_buys = buys.fillna(0).reindex(price_dates, fill_value=0)
         signed_sells = -sells.fillna(0).reindex(price_dates, fill_value=0)
@@ -137,12 +137,12 @@ def compute_realized_pnl(
     # Group by normalized date & ticker
     grouped = (
         tx_copy[tx_copy["Transaktionstyp"].isin(["KÖPT", "SÅLT"])]
-        .groupby([pd.to_datetime(tx_copy["Date"]).dt.normalize(), tx_copy["Name YFINANCE"]])
+        .groupby([pd.to_datetime(tx_copy["Date"]).dt.normalize(), tx_copy["Identifying name"]])
     )
 
     # We’ll collect results into a per‐ticker DataFrame
     dates = pd.to_datetime(tx_copy["Date"]).dt.normalize().sort_values().unique()
-    tickers = tx_copy["Name YFINANCE"].unique()
+    tickers = tx_copy["Identifying name"].unique()
     per_ticker_realized = pd.DataFrame(0.0, index=dates, columns=tickers)
     realized_pnl_series = pd.Series(0.0, index=dates)
 
@@ -271,7 +271,7 @@ def aggregate_portfolio_pnl(
 def main():
     # 1) Load data
     prices_df = load_prices(config.PRICES_CSV)
-    tx_df = load_transactions(config.FORMATTED_TRANSACTIONS_CSV)
+    tx_df = load_transactions(config.AUGMENTET_AND_FORMATTED_TX_CSV)
     start_pos_df = load_start_positions(config.START_POSITIONS_CSV)
 
     # 2) Compute PnL curves
@@ -280,7 +280,7 @@ def main():
         tx=tx_df,
         prices=prices_df,
         start_pos_df=start_pos_df,
-        initial_capital=initial_capital,
+        initial_capital=config.INITIAL_SUB_PORTFOLIO_CAPITAL,
         start_date_str=config.START_DATE_STR
     )
 

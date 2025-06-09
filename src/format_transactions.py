@@ -8,7 +8,7 @@ from typing import Optional
 
 
 def format_transactions(
-    raw_transactions_path: Path,
+    augmented_transactions_path: Path,
     mapping_path: Path,
     output_path: Path
 ) -> pd.DataFrame:
@@ -24,12 +24,20 @@ def format_transactions(
 
     # 1. Read raw transactions (could be tab / messy)
     #tx = read_messy_tab_file(raw_transactions_path)
-    tx = read_flexible_table(raw_transactions_path)
-    
+    #tx = read_flexible_table(raw_transactions_path)
+    #tx = read_flexible_table(augmented_transactions_path)
+    #tx = read_messy_tab_file(augmented_transactions_path, encoding="utf-8").values
+    tx = pd.read_csv(augmented_transactions_path, sep=",", encoding="utf-8")
+    #for the column "Kurs" change the decimal separator from "," to "."
+    #tx["Kurs"] = tx["Kurs"].str.replace(",", ".", regex=False)
+    #tx = tx.str.replace(",", ".", regex=False)
+    cols_to_replace = ["Kurs", "Belopp", "Antal"]
+    for col in cols_to_replace:
+        tx[col] = tx[col].astype(str).str.replace(",", ".", regex=False)
     # 2. Check that 'Portfolio' has been created by the user
     if "subportfolio" not in tx.columns:
         raise RuntimeError(
-            f"❌  'subortfolio' column not found in {raw_transactions_path}. "
+            f"❌  'subortfolio' column not found in {augmented_transactions_path}. "
             f"Please add a 'subportfolio' column before running this script."
         )
 
@@ -75,21 +83,28 @@ def format_transactions(
     )
     merged["Name YFINANCE"] = merged["TICKER"].where(
         ~invalid_mask,
-        merged["ISIN"]
+        merged["Värdepapper"]
+        .str.replace(" ", "-", regex=False)
     )
 
     # Remove trailing ".US"
     merged["Name YFINANCE"] = merged["Name YFINANCE"].str.replace(r"\.US$", "", regex=True)
+    
+    #rename columns for clarity
+    merged.rename(
+    columns={"Name YFINANCE": "Identifying name"},
+    inplace=True
+)
 
     # 4. Convert numeric columns (Belopp, Antal) to numeric dtypes
-    for col in ("Belopp", "Antal"):
-        merged[col] = merged[col].astype(str)
-    merged["Belopp"] = merged["Belopp"].str.replace(",", ".", regex=False)
-    merged["Antal"] = (
-        merged["Antal"]
-        .str.replace(r"\.", "", regex=True)    # remove thousands separator
-        .str.replace(",", ".", regex=False)
-    )
+    # for col in ("Belopp", "Antal"):
+    #     merged[col] = merged[col].astype(str)
+    #     merged["Belopp"] = merged["Belopp"].str.replace(",", ".", regex=False)
+    #     merged["Antal"] = (
+    #         merged["Antal"]
+    #         .str.replace(r"\.", "", regex=True)    # remove thousands separator
+    #         .str.replace(",", ".", regex=False)
+    #     )
     merged["Belopp"] = pd.to_numeric(merged["Belopp"], errors="coerce")
     merged["Antal"] = pd.to_numeric(merged["Antal"], errors="coerce")
 
@@ -101,12 +116,12 @@ def format_transactions(
     output_cols = [
         "Affärsdag",
         "subportfolio",
-        "Name YFINANCE",
+        "Identifying name",
         "Transaktionstyp",
         "Antal",
         "Belopp SEK (ex courtage)",
         "Pris SEK",
-        "Valuta",
+        "Valuta.3"
     ]
     output_df = merged[output_cols]
 
@@ -118,9 +133,9 @@ def format_transactions(
 
 def main():
     df = format_transactions(
-        raw_transactions_path=config.TRANSACTIONS_CSV,
+        augmented_transactions_path=config.AUGMENTED_TX_PATH,
         mapping_path=config.ISIN_MAPPING_CSV,
-        output_path=config.FORMATTED_TRANSACTIONS_CSV,
+        output_path=config.AUGMENTET_AND_FORMATTED_TX_CSV,
     )
 
 

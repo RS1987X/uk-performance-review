@@ -39,11 +39,11 @@ def load_omx_benchmark_from_prices(
     ).sort_index()
 
     omx_isin = "SE0002416156"
+    omx_ticker = "^OMXSGI"
+    if omx_ticker not in prices_df.columns:
+        raise ValueError(f"OMX ticker '{omx_ticker}' not found in columns: {list(prices_df.columns)}")
 
-    if omx_isin not in prices_df.columns:
-        raise ValueError(f"OMX ISIN '{omx_isin}' not found in columns: {list(prices_df.columns)}")
-
-    prices = prices_df[omx_isin].dropna().sort_index()
+    prices = prices_df[omx_ticker].dropna().sort_index()
 
     # Daily returns (fill NaN on first row with 0.0)
     daily_ret = prices.pct_change().fillna(0.0)

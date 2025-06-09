@@ -3,17 +3,20 @@ import streamlit as st
 import pandas as pd
 import os
 import src.config as config
-import subprocess
+import subprocess 
 import sys
 from pathlib import Path
 from src.utils import read_messy_tab_file 
+import time
+import platform
+import webbrowser
 # RAW_PATH   = "original_data.csv"
 # ANNOT_PATH = "annotations.csv"
 # OUTPUT_PATH = "augmented_data.csv"
 
 @st.cache_data
 def load_raw():
-    return read_messy_tab_file(config.RAW_TX_PATH)
+        return read_messy_tab_file(config.RAW_TX_PATH)
 
 @st.cache_data
 def load_annotations():
@@ -38,15 +41,31 @@ def load_annotations():
 def launch_annotation_ui():
     print("🔍 No subportfolio file found. Launching Streamlit editor…\n"
           "   (When you’ve filled and saved, Ctrl+C to stop Streamlit and re-run this script.)")
+    # This will block until you hit Ctrl+C
+    cmd = [sys.executable, "-m", "streamlit", "run", __file__]
+    print("DEBUG:", cmd, type(cmd[-1]))
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1)
+    # you can also dynamically read the port from config if you've changed it
+    url = f"http://localhost:{config.STREAMLIT_PORT or 8501}"
+    print(f"🌐 Opening browser at {url}")
+    # On WSL, use explorer.exe to pop open the Windows browser
+    if sys.platform.startswith("linux") and "microsoft" in platform.uname().release.lower():
+        subprocess.run(["explorer.exe", url], check=False)
+    else:
+        # fallback to webbrowser / xdg-open on native Linux or Mac/Windows
+        import webbrowser
+        webbrowser.open(url, new=2)
+
+
     try:
-        # This will block until you hit Ctrl+C
-        subprocess.run(
-            [sys.executable, "-m", "streamlit", "run", __file__],
-            check=False
-        )
+        # now block here until you hit Ctrl+C
+        proc.wait()
     except KeyboardInterrupt:
-        # Streamlit server was interrupted by Ctrl+C
         print("✍️  Detected Ctrl+C — resuming pipeline…")
+        proc.terminate()
+        proc.wait()
+
     # now control returns here, and the script can continue
 
 
@@ -83,10 +102,7 @@ def main():
     display_cols = ["Id", "Affärsdag", "Transaktionstyp", "Värdepapper", "ISIN", "Antal", "Kurs"]
     df = raw[display_cols].drop_duplicates().merge(ann, on="Id", how="left")
     
-    CANDIDATE_SUBPORTFOLIOS = ["BURMAN","BERGMAN", "GUNNARSSON", "JAEGERSTAD", "LINDHE",
-                               "SAFFAR", "SJOGREN", "SODERLUND", "STEFFEN",
-                               "SKUGG"]
-    
+    CANDIDATE_SUBPORTFOLIOS = config.SUB_PORTFOLIO_NAMES
     #df = raw[["Id"]].drop_duplicates().merge(ann, on="Id", how="left")
     #edited = st.data_editor(df, num_rows="dynamic", use_container_width=True)
     

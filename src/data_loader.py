@@ -59,7 +59,7 @@ def infer_currency_map(
     currency_map = {}
 
     # 1) From buy/sell rows in tx
-    for name, group in tx.groupby("Name YFINANCE"):
+    for name, group in tx.groupby("Identifying name"):
         trades_bs = group[group["Transaktionstyp"].isin(["KÖPT", "SÅLT"])]
         if trades_bs.empty:
             # no PnL trades; assume SEK unless overwritten by start_pos
@@ -87,7 +87,7 @@ def infer_currency_map(
             currency_map[ticker] = ccy
 
     # 3) Report any tickers that remain missing
-    tx_tickers = set(tx["Name YFINANCE"].dropna().unique())
+    tx_tickers = set(tx["Identifying name"].dropna().unique())
     start_tickers = set(start_pos_df["Name"].dropna().unique())
     all_tickers = tx_tickers.union(start_tickers)
     missing = sorted([t for t in all_tickers if t not in currency_map])
@@ -112,7 +112,7 @@ def load_omx_manual(omx_manual_csv: Path) -> pd.Series:
 def main():
     # Example usage if run directly
     prices = load_prices(config.PRICES_CSV)
-    tx = load_transactions(config.FORMATTED_TRANSACTIONS_CSV)
+    tx = load_transactions(config.AUGMENTED_TX_PATH)
     start_pos = load_start_positions(config.START_POSITIONS_CSV)
     currency_map = infer_currency_map(tx, start_pos)
     # Usually you’d return these to callers rather than printing.
