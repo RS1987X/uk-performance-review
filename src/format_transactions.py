@@ -31,11 +31,11 @@ def format_transactions(
     #for the column "Kurs" change the decimal separator from "," to "."
     #tx["Kurs"] = tx["Kurs"].str.replace(",", ".", regex=False)
     #tx = tx.str.replace(",", ".", regex=False)
-    cols_to_replace = ["Kurs", "Belopp", "Antal"]
+    cols_to_replace = ["Kurs", "Belopp"]
     for col in cols_to_replace:
         tx[col] = tx[col].astype(str).str.replace(",", ".", regex=False)
     # 2. Check that 'Portfolio' has been created by the user
-    if "subportfolio" not in tx.columns:
+    if "Sub-Portfolio" not in tx.columns:
         raise RuntimeError(
             f"❌  'subortfolio' column not found in {augmented_transactions_path}. "
             f"Please add a 'subportfolio' column before running this script."
@@ -106,7 +106,7 @@ def format_transactions(
     #         .str.replace(",", ".", regex=False)
     #     )
     merged["Belopp"] = pd.to_numeric(merged["Belopp"], errors="coerce")
-    merged["Antal"] = pd.to_numeric(merged["Antal"], errors="coerce")
+    merged["Antal"] = pd.to_numeric(merged["Antal_y"], errors="coerce")
 
     # 5. Compute new fields
     merged["Belopp SEK (ex courtage)"] = merged["Belopp"]  # could rename if needed
@@ -115,7 +115,7 @@ def format_transactions(
     # 6. Select & reorder columns
     output_cols = [
         "Affärsdag",
-        "subportfolio",
+        "Sub-Portfolio",
         "Identifying name",
         "Transaktionstyp",
         "Antal",

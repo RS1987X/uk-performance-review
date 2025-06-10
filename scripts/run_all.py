@@ -25,8 +25,8 @@ def main():
     print("▶ 3/5  Adding sub-portfolio labels…")
     # will launch Streamlit and exit if labels missing
     add_sub_portfolio_labels.run_streamlit_editor()
-    # # once labels exist, merge and get DataFrame for downstream steps
-    # tx_df = add_sub_portfolio_labels.run_merge_if_ready()
+    # once labels exist, merge and get DataFrame for downstream steps
+    add_sub_portfolio_labels.run_merge_if_ready()
     
     try:
         format_transactions.main()

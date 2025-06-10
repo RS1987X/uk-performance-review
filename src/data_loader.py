@@ -28,7 +28,7 @@ def load_transactions(formatted_tx_csv: Path) -> pd.DataFrame:
     """
     tx = pd.read_csv(formatted_tx_csv, sep=";", parse_dates=["Affärsdag"], dayfirst=True)
     tx.rename(columns={"Affärsdag": "Date"}, inplace=True)
-    tx["subportfolio"] = tx["subportfolio"].fillna("").astype(str).str.upper()
+    tx["Sub-Portfolio"] = tx["Sub-Portfolio"].fillna("").astype(str).str.upper()
     tx["Date"] = tx["Date"].dt.date
     return tx
 
@@ -40,11 +40,11 @@ def load_start_positions(start_pos_csv: Path) -> pd.DataFrame:
     """
     if start_pos_csv.exists():
         start_df = pd.read_csv(start_pos_csv, sep=";")
-        start_df["subportfolio"] = start_df["subportfolio"].astype(str).str.upper()
+        start_df["Sub-Portfolio"] = start_df["Sub-Portfolio"].astype(str).str.upper()
         # Filter out blank portfolio lines
-        return start_df[start_df["subportfolio"] != ""]
+        return start_df[start_df["Sub-Portfolio"] != ""]
     else:
-        return pd.DataFrame(columns=["subportfolio", "Name", "Shares", "ccy"])
+        return pd.DataFrame(columns=["Sub-Portfolio", "Name", "Shares", "ccy"])
 
 
 def infer_currency_map(
