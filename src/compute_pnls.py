@@ -220,7 +220,7 @@ def aggregate_portfolio_pnl(
 
         # 6) Per‐ticker total daily PnL = unrealized + realized_by_ticker
         per_ticker_pnl = per_ticker_unrealized.add(per_ticker_realized, fill_value=0)
-
+ 
         # Accumulate per‐ticker across portfolios if you want an overall table
         if total_pnl_by_ticker is None:
             total_pnl_by_ticker = per_ticker_pnl.copy()
@@ -265,7 +265,7 @@ def aggregate_portfolio_pnl(
     uk_cum_pnl = uk_daily_total_pnl.cumsum()
     uk_drawdown = uk_cum_pnl - uk_cum_pnl.cummax()
 
-    return results, uk_cum_pnl, uk_drawdown
+    return results, total_pnl_by_ticker.cumsum(), uk_cum_pnl, uk_drawdown
 
 
 def main():
@@ -275,8 +275,8 @@ def main():
     start_pos_df = load_start_positions(config.START_POSITIONS_CSV)
 
     # 2) Compute PnL curves
-    initial_capital = 102_604  # or move this into config
-    results_dict, uk_cum, uk_dd = aggregate_portfolio_pnl(
+    
+    results_dict, pnl_by_ticker, uk_cum, uk_dd = aggregate_portfolio_pnl(
         tx=tx_df,
         prices=prices_df,
         start_pos_df=start_pos_df,
@@ -292,7 +292,7 @@ def main():
     # plot_aggregate(results_dict, uk_cum, uk_dd, prices_df, output_folder)
     # ...
     print("PnL computation done; now generate charts.")
-    return results_dict, uk_cum, uk_dd
+    return results_dict,pnl_by_ticker, uk_cum, uk_dd
 
 if __name__ == "__main__":
     main()

@@ -60,6 +60,66 @@ def save_performance_table(
     plt.close(fig)
     return output_path
 
+from pptx import Presentation
+from pptx.util import Inches, Pt
+import math
+def save_df_as_ppt_table(df: pd.Series, output_path: Path, columns: int) -> None: 
+    """
+    Creates a PowerPoint slide with a compact table of PnL by ticker.
+    Splits the DataFrame into the specified number of columns.
+    Expects df to have columns ['ticker', 'final_pnl'] sorted descending.
+    """
+    # Ensure the Series is not empty
+    if df.empty:
+        raise ValueError("The input Series is empty.")
+
+    # Convert the Series to lists for easier processing
+    tickers = df.index.astype(str).tolist()
+    pnl_values = df.values.tolist()
+
+    # Determine layout
+    total_items = len(df)
+    rows_per_col = math.ceil(total_items / columns)
+    table_cols = columns * 2  # ticker and PnL per column
+    table_rows = rows_per_col + 1  # +1 for header row
+
+    # Prepare Presentation and slide
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])  # blank slide
+
+    # Table dimensions
+    left = Inches(0.5)
+    top = Inches(1.0)
+    width = Inches(9.0)
+    height = Inches(0.3 + 0.25 * rows_per_col)
+
+    table = slide.shapes.add_table(table_rows, table_cols, left, top, width, height).table
+
+    # Populate header
+    for col in range(columns):
+        table.cell(0, col * 2).text = "Ticker"
+        table.cell(0, col * 2 + 1).text = "PnL"
+
+    # Populate cells
+    for idx in range(total_items):
+        col = idx // rows_per_col
+        row = idx % rows_per_col + 1  # +1 to skip header
+        table.cell(row, col * 2).text = tickers[idx]
+        table.cell(row, col * 2 + 1).text = f"{pnl_values[idx]:,.0f}"
+
+    # Set font size for all cells
+    for row in table.rows:
+        for cell in row.cells:
+            for paragraph in cell.text_frame.paragraphs:
+                for run in paragraph.runs:
+                    run.font.size = Pt(10)  # Set font size to 10 points
+
+    # Save the presentation
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    prs.save(str(output_path / "pnl_by_ticker.pptx"))
+    print(f"✅ Slide with PnL table saved to {output_path}")
+
+
 
 def plot_portfolio_vs_omx(
     name: str,

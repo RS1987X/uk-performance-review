@@ -10,7 +10,8 @@ from src import compute_pnls
 from src.plotting import (
     save_performance_table,
     plot_portfolio_vs_omx,
-    plot_all_portfolios_vs_omx
+    plot_all_portfolios_vs_omx,
+    save_df_as_ppt_table
 )
 from src import config
 
@@ -79,11 +80,24 @@ def main():
     
     print("▶ 1/3  Computing PnL curves for subportfolios and overall...")
     try:
-        results_dict, overall_cum, overall_dd = compute_pnls.main()
+        results_dict, pnl_by_ticker, overall_cum, overall_dd = compute_pnls.main()
     except Exception as e:
         print(f"⚠️  Error in compute_pnls: {e}")
         traceback.print_exc()
         return
+
+    #sort pnl_by_ticker by cumulative PnL and save as a table
+    #sorted_pnl_by_ticker = sorted(pnl_by_ticker.items(), key=lambda x: x[1]['cumulative_pnl'], reverse=True)
+    sorted_pnl_by_ticker = pnl_by_ticker[-1:].stack().sort_values(ascending=False)
+    
+    # Flatten the multi-index into a single index
+    sorted_pnl_by_ticker_flattened = sorted_pnl_by_ticker.copy()
+    sorted_pnl_by_ticker_flattened = sorted_pnl_by_ticker.droplevel(0)
+    #sorted_pnl_by_ticker_flattened.index = sorted_pnl_by_ticker_flattened.index.map(lambda x: f"{x[1]}")
+
+    
+    save_df_as_ppt_table(sorted_pnl_by_ticker_flattened,config.OUTPUT_DIR,2)
+
 
     print("▶ 2/3  Loading OMXSGI benchmark series...")
     try:
