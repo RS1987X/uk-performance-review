@@ -2,6 +2,45 @@
 
 This project computes portfolio, sub‐portfolio and security PnL, compares it versus OMXSGI, and generates performance tables and charts. Below are the steps to follow each year (or on any new machine) to update data and run the analysis.
 
+
+
+## Quickstart
+
+1. Clone the repo and set up your environment (see below).
+2. Place your data files as described.
+3. Update `src/config.py` for the current year.
+4. Run:
+   ```sh
+   python scripts/run_all.py
+   ```
+
+## Folder Structure
+
+```
+── xxx/AGM YYYYMMDD/
+    ├── missing data from yahoo/
+        ├──^OMXSGI
+        ├──Xtrackers-Russell-2000-UCITS-ETF-1C
+    ├── transactions UK FKF.csv
+    ├── starting_position.csv
+    └── charts/
+── uk-performance-review/
+  ├── src/
+  ├── scripts/
+```
+
+## Input Files
+
+- **Raw Transactions:** `transactions UK FKF.csv` (raw transactions from broker)
+- **Starting Positions:** `starting_position.csv` (columns: Sub-portfolio;Name;Shares;ccy)
+- **Manual Price Data:** Place CSVs in `missing data from yahoo/` (csv-files named by Värdepapper (see column in raw transactions file), contain a Date and Last columns at least. Also include the data for OMXSGI which should be named ^OMXSGI).
+
+## Output
+
+- Charts and tables: `AGM YYYYMMDD/charts/`
+- Logs: `AGM YYYYMMDD/*.log`
+
+
 ---
 
 ## 1. Prerequisites
@@ -14,14 +53,16 @@ This project computes portfolio, sub‐portfolio and security PnL, compares it v
 
 ---
 
-## 2. If you already have this repo locally, skip the clone step
+## 2. If you haven’t yet cloned the repository, do:
 
-If you haven’t yet cloned the repository, do:
+
 ```bash
 cd ~/whatever/path/you/keep/repos
 git clone git@github.com:RS1987X/uk-performance-review.git
 cd uk-performance-review
+```
 
+## If you already have this repo locally, skip the clone step
 ---
 
 ## 3. Create and activate a Python virtual enviroment
@@ -67,13 +108,22 @@ OUTPUT_DIR = AGM_DIR / "charts"
 ## 7. Run the analysis
 python run_all.py
 
-this reads CSVs from
+-this reads CSVs from
 ~/uk-agm-cmd-folder/AGM YYYYMMDD
 
-and writes charts into
-~/uk-agm-cmd-folder/AGM YYYYMMDD/charts
+-Then launches a streamlit app where you can add sub portfolio labels to each transaction,
+you can also specify if a transaction is shared between several portfolios.
 
-Charts and tables for the new year will appear in ~/uk-agm-cmd-folder/AGM YYYYMMDD/charts/.
+-It then formats the "augmented" transactions file
+
+-Gets the tickers for the isins of the transacitons from eoddata api to be able to 
+get data from yahoo finance. If we cant get the data from yfinance then try to load the data
+manually from missing data from yahoo folder.
+
+-Calculate PnLs for the relevant things
+
+-Writes charts and tables into
+~/uk-agm-cmd-folder/AGM YYYYMMDD/charts
 
 
 ## 8. Git best practices
